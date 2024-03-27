@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="game">
+        <h1>Blackjack Game</h1>
+        <div id="message">Welcome! Click 'Deal' to start.</div>
+        <div id="buttons">
+            <button onclick="deal()">Deal</button>
+            <button onclick="hit()">Hit</button>
+            <button onclick="stand()">Stand</button>
+        </div>
+        <div id="dealer-area">
+            <h2>Dealer</h2>
+            <div id="dealer-cards" class="cards"></div>
+        </div>
+        <div id="player-area">
+            <h2>Player</h2>
+            <div id="cards" class="cards"></div>
+        </div>
+    </div>
+
+    <script>
+        const cardValues = {
+            '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+            'J': 10, 'Q': 10, 'K': 10, 'A': 11
+        };
+
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+
+        function createDeck() {
+            const suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades'];
+            const values = Object.keys(cardValues);
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({ value: value, suit: suit });
+                }
+            }
+        }
+
+        function shuffleDeck() {
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function dealCard(hand) {
+            hand.push(deck.pop());
+        }
+
+        function calculateHandValue(hand) {
+            let sum = 0;
+            let aceCount = 0;
+            for (let card of hand) {
+                sum += cardValues[card.value];
+                if (card.value === 'A') {
+                    aceCount++;
+                }
+            }
+            while (sum > 21 && aceCount > 0) {
+                sum -= 10;
+                aceCount--;
+            }
+            return sum;
+        }
+
+        function displayCards(hand, elementId) {
+            const cardsElement = document.getElementById(elementId);
+            cardsElement.innerHTML = '';
+            for (let card of hand) {
+                const cardDiv = document.createElement('div');
+                cardDiv.textContent = `${card.value} of ${card.suit}`;
+                cardsElement.appendChild(cardDiv);
+            }
+        }
+
+        function deal() {
+            deck = [];
+            playerHand = [];
+            dealerHand = [];
+            createDeck();
+            shuffleDeck();
+            dealCard(playerHand);
+            dealCard(dealerHand);
+            dealCard(playerHand);
+            dealCard(dealerHand);
+            displayCards(playerHand, 'cards');
+            displayCards(dealerHand, 'dealer-cards');
+            document.getElementById('message').textContent = 'Your turn. Choose Hit or Stand.';
+        }
+
+        function hit() {
+            dealCard(playerHand);
+            displayCards(playerHand, 'cards');
+            const playerScore = calculateHandValue(playerHand);
+            if (playerScore > 21) {
+                document.getElementById('message').textContent = 'You bust! Dealer wins.';
+            }
+        }
+
+        function stand() {
+            let dealerScore = calculateHandValue(dealerHand);
+            while (dealerScore < 17) {
+                dealCard(dealerHand);
+                dealerScore = calculateHandValue(dealerHand);
+            }
+            displayCards(dealerHand, 'dealer-cards');
+            const playerScore = calculateHandValue(playerHand);
+            if (dealerScore > 21 || playerScore > dealerScore) {
+                document.getElementById('message').textContent = 'You win!';
+            } else if (dealerScore > playerScore) {
+                document.getElementById('message').textContent = 'Dealer wins.';
+            } else {
+                document.getElementById('message').textContent = 'It\'s a tie!';
+            }
+        }
+    </script>
+</body>
+</html>
